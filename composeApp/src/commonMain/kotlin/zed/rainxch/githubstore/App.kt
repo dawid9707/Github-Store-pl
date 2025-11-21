@@ -18,15 +18,16 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import githubstore.composeapp.generated.resources.Res
 import githubstore.composeapp.generated.resources.compose_multiplatform
+import zed.rainxch.githubstore.core.presentation.designsystems.theme.GithubStoreTheme
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
+    GithubStoreTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.background)
                 .safeContentPadding()
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
