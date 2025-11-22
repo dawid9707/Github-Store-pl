@@ -1,3 +1,9 @@
+<div align="center">
+</br>
+<img src="https://github.com/XDdevv/Github-Store/blob/main/composeApp/src/commonMain/composeResources/drawable/app-icon.png" width="200" />
+
+</div>
+
 <h1 align="center">Github-Store</h1>
 
 <p align="center">
