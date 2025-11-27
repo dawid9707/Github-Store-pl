@@ -2,13 +2,7 @@ package zed.rainxch.githubstore.feature.details.domain.repository
 
 import zed.rainxch.githubstore.core.domain.model.GithubRelease
 import zed.rainxch.githubstore.core.domain.model.GithubRepoSummary
-
-data class RepoStats(
-    val stars: Int,
-    val forks: Int,
-    val openIssues: Int,
-    val contributors: Int
-)
+import zed.rainxch.githubstore.feature.details.domain.model.RepoStats
 
 interface DetailsRepository {
     /**

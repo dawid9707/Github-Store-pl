@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.feature.install
+package zed.rainxch.githubstore.feature.details.data
 
 import kotlinx.coroutines.flow.Flow
 

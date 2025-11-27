@@ -15,8 +15,8 @@ import zed.rainxch.githubstore.feature.auth.presentation.AuthenticationViewModel
 import zed.rainxch.githubstore.feature.details.data.repository.DetailsRepositoryImpl
 import zed.rainxch.githubstore.feature.details.domain.repository.DetailsRepository
 import zed.rainxch.githubstore.feature.details.presentation.DetailsViewModel
-import zed.rainxch.githubstore.feature.install.Downloader
-import zed.rainxch.githubstore.feature.install.Installer
+import zed.rainxch.githubstore.feature.details.data.Downloader
+import zed.rainxch.githubstore.feature.details.data.Installer
 import zed.rainxch.githubstore.feature.home.data.repository.HomeRepositoryImpl
 import zed.rainxch.githubstore.feature.home.data.repository.getPlatform
 import zed.rainxch.githubstore.feature.home.domain.repository.HomeRepository

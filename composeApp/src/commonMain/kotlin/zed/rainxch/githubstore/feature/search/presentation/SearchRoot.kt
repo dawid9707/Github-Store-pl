@@ -20,7 +20,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material3.Button
@@ -47,12 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.githubstore.core.presentation.components.RepositoryCard
 import zed.rainxch.githubstore.core.presentation.theme.GithubStoreTheme
-import zed.rainxch.githubstore.feature.search.domain.model.PlatformType
+import zed.rainxch.githubstore.feature.search.domain.model.SearchPlatformType
 import zed.rainxch.githubstore.feature.search.domain.model.SortBy
 import zed.rainxch.githubstore.feature.search.presentation.presentation.SortByBottomSheet
 
@@ -180,9 +178,9 @@ fun SearchScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                items(PlatformType.entries.toList()) { sortBy ->
+                items(SearchPlatformType.entries.toList()) { sortBy ->
                     FilterChip(
-                        selected = state.selectedPlatformType == sortBy,
+                        selected = state.selectedSearchPlatformType == sortBy,
                         label = {
                             Text(
                                 text = sortBy.name.lowercase().replaceFirstChar { it.uppercase() },

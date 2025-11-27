@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import zed.rainxch.githubstore.feature.install.DownloadProgress
-import zed.rainxch.githubstore.feature.install.Downloader
-import zed.rainxch.githubstore.feature.install.FileLocationsProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID

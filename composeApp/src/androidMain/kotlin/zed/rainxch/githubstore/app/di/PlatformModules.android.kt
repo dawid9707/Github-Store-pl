@@ -5,9 +5,9 @@ import org.koin.dsl.module
 import zed.rainxch.githubstore.feature.details.data.AndroidDownloader
 import zed.rainxch.githubstore.feature.details.data.AndroidFileLocationsProvider
 import zed.rainxch.githubstore.feature.details.data.AndroidInstaller
-import zed.rainxch.githubstore.feature.install.Downloader
-import zed.rainxch.githubstore.feature.install.FileLocationsProvider
-import zed.rainxch.githubstore.feature.install.Installer
+import zed.rainxch.githubstore.feature.details.data.Downloader
+import zed.rainxch.githubstore.feature.details.data.FileLocationsProvider
+import zed.rainxch.githubstore.feature.details.data.Installer
 
 actual val platformModule: Module = module {
     single<Downloader> {

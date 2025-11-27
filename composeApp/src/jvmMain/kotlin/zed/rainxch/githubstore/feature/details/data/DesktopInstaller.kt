@@ -3,8 +3,6 @@ package zed.rainxch.githubstore.feature.details.data
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import zed.rainxch.githubstore.feature.home.data.repository.PlatformType
-import zed.rainxch.githubstore.feature.install.FileLocationsProvider
-import zed.rainxch.githubstore.feature.install.Installer
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException

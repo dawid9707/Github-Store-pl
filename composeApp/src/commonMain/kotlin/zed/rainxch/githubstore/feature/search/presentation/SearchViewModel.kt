@@ -47,7 +47,7 @@ class SearchViewModel(
                 searchRepository.searchRepositories(
                     query = _state.value.search,
                     sortBy = _state.value.selectedSortBy,
-                    platformType = _state.value.selectedPlatformType,
+                    searchPlatformType = _state.value.selectedSearchPlatformType,
                     page = currentPage
                 ).catch { e ->
                     if (e !is CancellationException) {
@@ -95,9 +95,9 @@ class SearchViewModel(
     fun onAction(action: SearchAction) {
         when (action) {
             is SearchAction.OnPlatformTypeSelected -> {
-                if (_state.value.selectedPlatformType != action.platformType) {
+                if (_state.value.selectedSearchPlatformType != action.searchPlatformType) {
                     _state.update {
-                        it.copy(selectedPlatformType = action.platformType)
+                        it.copy(selectedSearchPlatformType = action.searchPlatformType)
                     }
                     currentPage = 1
                     searchDebounceJob?.cancel()

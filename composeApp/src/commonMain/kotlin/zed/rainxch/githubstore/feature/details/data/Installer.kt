@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.feature.install
+package zed.rainxch.githubstore.feature.details.data
 
 /** High-level installer API used by the Details feature. Implemented per platform and bound via DI. */
 interface Installer {

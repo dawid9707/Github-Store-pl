@@ -14,9 +14,6 @@ import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.last
-import zed.rainxch.githubstore.feature.install.DownloadProgress
-import zed.rainxch.githubstore.feature.install.Downloader
-import zed.rainxch.githubstore.feature.install.FileLocationsProvider
 
 class AndroidDownloader(
     private val context: Context,

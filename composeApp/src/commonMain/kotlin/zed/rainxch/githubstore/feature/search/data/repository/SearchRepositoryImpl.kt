@@ -8,7 +8,6 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -29,7 +28,7 @@ import zed.rainxch.githubstore.feature.home.data.model.GithubRepoNetworkModel
 import zed.rainxch.githubstore.feature.home.data.model.GithubRepoSearchResponse
 import zed.rainxch.githubstore.feature.home.data.model.toSummary
 import zed.rainxch.githubstore.feature.home.domain.repository.PaginatedRepos
-import zed.rainxch.githubstore.feature.search.domain.model.PlatformType
+import zed.rainxch.githubstore.feature.search.domain.model.SearchPlatformType
 import zed.rainxch.githubstore.feature.search.domain.model.SortBy
 import zed.rainxch.githubstore.feature.search.domain.repository.SearchRepository
 
@@ -65,11 +64,11 @@ class SearchRepositoryImpl(
     override fun searchRepositories(
         query: String,
         sortBy: SortBy,
-        platformType: PlatformType,
+        searchPlatformType: SearchPlatformType,
         page: Int
     ): Flow<PaginatedRepos> = channelFlow {
         val perPage = 30
-        val searchQuery = buildSearchQuery(query, sortBy, platformType)
+        val searchQuery = buildSearchQuery(query, sortBy, searchPlatformType)
         val (sort, order) = sortBy.toGithubParams()
 
         Logger.d { "Fast search query: $searchQuery | sort=$sort | page=$page" }
@@ -105,7 +104,7 @@ class SearchRepositoryImpl(
                     order = order,
                     perPage = perPage,
                     startPage = page,
-                    platformType = platformType,
+                    searchPlatformType = searchPlatformType,
                     targetCount = tunedTargetCount,
                     minFirstEmit = tunedMinFirstEmit,
                     verifyConcurrency = tunedVerifyConcurrency,
@@ -149,7 +148,7 @@ class SearchRepositoryImpl(
                                     semaphore.withPermit {
                                         withTimeoutOrNull(timeoutMs) {
                                             // Platform-specific latest release requirement
-                                            checkRepoHasInstallersCached(repo, platformType)
+                                            checkRepoHasInstallersCached(repo, searchPlatformType)
                                         }
                                     }
                                 } catch (e: CancellationException) {
@@ -213,7 +212,7 @@ class SearchRepositoryImpl(
     private fun buildSearchQuery(
         userQuery: String,
         sortBy: SortBy,
-        platformType: PlatformType
+        searchPlatformType: SearchPlatformType
     ): String {
         val clean = userQuery.trim()
         val q = if (clean.isBlank()) {
@@ -224,12 +223,12 @@ class SearchRepositoryImpl(
         val scope = " in:name,description,readme"
         val common = " archived:false fork:false"
 
-        val platformHints = when (platformType) {
-            PlatformType.All -> ""
-            PlatformType.Android -> " (topic:android OR apk in:name,description,readme)"
-            PlatformType.Windows -> " (topic:windows OR exe in:name,description,readme OR msi in:name,description,readme)"
-            PlatformType.Macos -> " (topic:macos OR dmg in:name,description,readme OR pkg in:name,description,readme)"
-            PlatformType.Linux -> " (topic:linux OR appimage in:name,description,readme OR deb in:name,description,readme)"
+        val platformHints = when (searchPlatformType) {
+            SearchPlatformType.All -> ""
+            SearchPlatformType.Android -> " (topic:android OR apk in:name,description,readme)"
+            SearchPlatformType.Windows -> " (topic:windows OR exe in:name,description,readme OR msi in:name,description,readme)"
+            SearchPlatformType.Macos -> " (topic:macos OR dmg in:name,description,readme OR pkg in:name,description,readme)"
+            SearchPlatformType.Linux -> " (topic:linux OR appimage in:name,description,readme OR deb in:name,description,readme)"
         }
 
         return ("$q$scope$common" + platformHints).trim()
@@ -248,7 +247,7 @@ class SearchRepositoryImpl(
         order: String,
         perPage: Int,
         startPage: Int,
-        platformType: PlatformType,
+        searchPlatformType: SearchPlatformType,
         targetCount: Int,
         minFirstEmit: Int,
         verifyConcurrency: Int,
@@ -284,7 +283,7 @@ class SearchRepositoryImpl(
                                 semaphore.withPermit {
                                     withTimeoutOrNull(perCheckTimeoutMs) {
                                         // Use the selected platform for strict-first verification on page 1
-                                        checkRepoHasInstallersCached(repo, platformType)
+                                        checkRepoHasInstallersCached(repo, searchPlatformType)
                                     }
                                 }
                             } catch (e: CancellationException) {
@@ -361,9 +360,9 @@ class SearchRepositoryImpl(
 
     private fun calculateScore(
         repo: GithubRepoNetworkModel,
-        targetPlatform: PlatformType
+        targetPlatform: SearchPlatformType
     ): Int {
-        if (targetPlatform == PlatformType.All) return 10
+        if (targetPlatform == SearchPlatformType.All) return 10
 
         var score = 5
         val topics = repo.topics.orEmpty().map { it.lowercase() }
@@ -371,28 +370,28 @@ class SearchRepositoryImpl(
         val desc = repo.description?.lowercase() ?: ""
 
         when (targetPlatform) {
-            PlatformType.Android -> {
+            SearchPlatformType.Android -> {
                 if (topics.contains("android")) score += 10
                 if (topics.contains("mobile")) score += 5
                 if (language in setOf("kotlin", "java")) score += 5
                 if (desc.contains("android") || desc.contains("apk")) score += 3
             }
-            PlatformType.Windows -> {
+            SearchPlatformType.Windows -> {
                 if (topics.any { it in setOf("windows", "desktop", "electron") }) score += 10
                 if (language in setOf("c#", "c++", "rust")) score += 5
                 if (desc.contains("windows") || desc.contains("desktop")) score += 3
             }
-            PlatformType.Macos -> {
+            SearchPlatformType.Macos -> {
                 if (topics.any { it in setOf("macos", "desktop", "electron") }) score += 10
                 if (language in setOf("swift", "objective-c", "c++")) score += 5
                 if (desc.contains("macos") || desc.contains("mac")) score += 3
             }
-            PlatformType.Linux -> {
+            SearchPlatformType.Linux -> {
                 if (topics.any { it in setOf("linux", "desktop", "electron") }) score += 10
                 if (language in setOf("rust", "c++", "c")) score += 5
                 if (desc.contains("linux")) score += 3
             }
-            PlatformType.All -> score = 10
+            SearchPlatformType.All -> score = 10
         }
 
         return score
@@ -400,19 +399,19 @@ class SearchRepositoryImpl(
 
     private suspend fun checkRepoHasInstallers(
         repo: GithubRepoNetworkModel,
-        targetPlatform: PlatformType
+        targetPlatform: SearchPlatformType
     ): GithubRepoSummary? {
-        fun assetMatchesForPlatform(nameRaw: String, platform: PlatformType): Boolean {
+        fun assetMatchesForPlatform(nameRaw: String, platform: SearchPlatformType): Boolean {
             val name = nameRaw.lowercase()
             return when (platform) {
-                PlatformType.All -> name.endsWith(".apk") ||
+                SearchPlatformType.All -> name.endsWith(".apk") ||
                     name.endsWith(".msi") || name.endsWith(".exe") ||
                     name.endsWith(".dmg") || name.endsWith(".pkg") ||
                     name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
-                PlatformType.Android -> name.endsWith(".apk")
-                PlatformType.Windows -> name.endsWith(".exe") || name.endsWith(".msi")
-                PlatformType.Macos -> name.endsWith(".dmg") || name.endsWith(".pkg")
-                PlatformType.Linux -> name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
+                SearchPlatformType.Android -> name.endsWith(".apk")
+                SearchPlatformType.Windows -> name.endsWith(".exe") || name.endsWith(".msi")
+                SearchPlatformType.Macos -> name.endsWith(".dmg") || name.endsWith(".pkg")
+                SearchPlatformType.Linux -> name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
             }
         }
 
@@ -432,7 +431,7 @@ class SearchRepositoryImpl(
 
     private suspend fun checkRepoHasInstallersCached(
         repo: GithubRepoNetworkModel,
-        targetPlatform: PlatformType
+        targetPlatform: SearchPlatformType
     ): GithubRepoSummary? {
         // Cache per repo per platform to avoid cross-platform contamination
         val key = "${repo.owner.login}/${repo.name}:LATEST_PLATFORM_${targetPlatform.name}"

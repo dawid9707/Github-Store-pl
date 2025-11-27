@@ -1,7 +1,6 @@
 package zed.rainxch.githubstore.feature.details.data
 
 import zed.rainxch.githubstore.feature.home.data.repository.PlatformType
-import zed.rainxch.githubstore.feature.install.FileLocationsProvider
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission

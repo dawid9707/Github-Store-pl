@@ -18,8 +18,8 @@ import zed.rainxch.githubstore.core.presentation.utils.openBrowser
 import zed.rainxch.githubstore.feature.details.domain.repository.DetailsRepository
 import zed.rainxch.githubstore.feature.home.data.repository.PlatformType
 import zed.rainxch.githubstore.feature.home.data.repository.getPlatform
-import zed.rainxch.githubstore.feature.install.Downloader
-import zed.rainxch.githubstore.feature.install.Installer
+import zed.rainxch.githubstore.feature.details.data.Downloader
+import zed.rainxch.githubstore.feature.details.data.Installer
 import kotlin.time.Clock.*
 import kotlin.time.ExperimentalTime
 

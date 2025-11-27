@@ -8,8 +8,6 @@ import android.provider.Settings
 import androidx.core.content.FileProvider
 import java.io.File
 import androidx.core.net.toUri
-import zed.rainxch.githubstore.feature.install.FileLocationsProvider
-import zed.rainxch.githubstore.feature.install.Installer
 
 class AndroidInstaller(
     private val context: Context,
