@@ -1,0 +1,19 @@
+package zed.rainxch.githubstore.feature.install
+
+/** High-level installer API used by the Details feature. Implemented per platform and bound via DI. */
+interface Installer {
+    /** Whether this platform can handle installing/opening this asset by extension or MIME. */
+    suspend fun isSupported(extOrMime: String): Boolean
+
+    /** Ensure any required permissions/settings are granted (may throw). */
+    suspend fun ensurePermissionsOrThrow(extOrMime: String)
+
+    /** Launch platform installation/open of the given file path. */
+    suspend fun install(filePath: String, extOrMime: String)
+}
+
+/** File location utilities provided per platform via DI. */
+interface FileLocationsProvider {
+    fun appDownloadsDir(): String
+    fun setExecutableIfNeeded(path: String)
+}
