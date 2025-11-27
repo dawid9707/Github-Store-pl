@@ -12,7 +12,9 @@ actual fun openBrowser(
     try {
         when {
             os.contains("linux") -> {
-                Runtime.getRuntime().exec(arrayOf("xdg-open", url))
+                val processBuilder = ProcessBuilder("xdg-open", url)
+                processBuilder.redirectErrorStream(true)
+                processBuilder.start()
             }
 
             Desktop.isDesktopSupported() && Desktop.getDesktop()
