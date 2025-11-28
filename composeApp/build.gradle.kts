@@ -148,10 +148,27 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "zed.rainxch.githubstore"
+            packageName = "Github Store"
             packageVersion = "1.0.0"
 
-            // Important: include modules used by Ktor / HttpClient
+            vendor = "rainxchzed"
+
+            windows {
+                iconFile.set(project.file("logo/app_icon.ico"))
+                menuGroup = "Github Store"
+                shortcut = true
+                perUserInstall = true
+            }
+            macOS {
+                iconFile.set(project.file("logo/app_icon.icns"))
+                bundleID = "zed.rainxch.githubstore"
+            }
+            linux {
+                iconFile.set(project.file("logo/app_icon.png"))
+                appRelease = "Github Store"
+                debPackageVersion = "1.0.0"
+            }
+
             modules(
                 "java.sql",
                 "java.desktop",
