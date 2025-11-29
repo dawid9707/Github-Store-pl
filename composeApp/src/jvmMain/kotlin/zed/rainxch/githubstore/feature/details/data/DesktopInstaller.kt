@@ -3,7 +3,11 @@ package zed.rainxch.githubstore.feature.details.data
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import zed.rainxch.githubstore.core.domain.model.Architecture
+import zed.rainxch.githubstore.core.domain.model.GithubAsset
 import zed.rainxch.githubstore.core.domain.model.PlatformType
+import zed.rainxch.githubstore.feature.details.data.model.LinuxTerminal
+import zed.rainxch.githubstore.feature.details.domain.model.LinuxPackageType
 import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -13,6 +17,159 @@ import java.io.IOException
 class DesktopInstaller(
     private val platform: PlatformType
 ) : Installer {
+
+    private val linuxPackageType: LinuxPackageType by lazy {
+        detectLinuxPackageType()
+    }
+
+    private val systemArchitecture: Architecture by lazy {
+        detectSystemArchitecture()
+    }
+
+    override fun getSystemArchitecture(): Architecture = systemArchitecture
+
+    override fun isAssetInstallable(assetName: String): Boolean {
+        val name = assetName.lowercase()
+
+        val hasValidExtension = when (platform) {
+            PlatformType.ANDROID -> name.endsWith(".apk")
+            PlatformType.WINDOWS -> name.endsWith(".msi") || name.endsWith(".exe")
+            PlatformType.MACOS -> name.endsWith(".dmg") || name.endsWith(".pkg")
+            PlatformType.LINUX -> {
+                when {
+                    name.endsWith(".appimage") -> true
+                    name.endsWith(".deb") -> linuxPackageType == LinuxPackageType.DEB
+                    name.endsWith(".rpm") -> linuxPackageType == LinuxPackageType.RPM
+                    else -> false
+                }
+            }
+        }
+
+        if (!hasValidExtension) return false
+
+        return isArchitectureCompatible(name, systemArchitecture)
+    }
+
+    override fun choosePrimaryAsset(assets: List<GithubAsset>): GithubAsset? {
+        if (assets.isEmpty()) return null
+
+        val priority = when (platform) {
+            PlatformType.ANDROID -> listOf(".apk")
+            PlatformType.WINDOWS -> listOf(".msi", ".exe")
+            PlatformType.MACOS -> listOf(".dmg", ".pkg")
+            PlatformType.LINUX -> {
+                when (linuxPackageType) {
+                    LinuxPackageType.DEB -> listOf(".deb", ".appimage")
+                    LinuxPackageType.RPM -> listOf(".rpm", ".appimage")
+                    LinuxPackageType.UNIVERSAL -> listOf(".appimage")
+                }
+            }
+        }
+
+        val compatibleAssets = assets.filter { asset ->
+            isArchitectureCompatible(asset.name.lowercase(), systemArchitecture)
+        }
+
+        val assetsToConsider = compatibleAssets.ifEmpty { assets }
+
+        return assetsToConsider.maxByOrNull { asset ->
+            val name = asset.name.lowercase()
+            val idx = priority.indexOfFirst { name.endsWith(it) }
+                .let { if (it == -1) 999 else it }
+
+            val archBoost = if (isExactArchitectureMatch(name, systemArchitecture)) 10000 else 0
+
+            archBoost + (-1000 * (priority.size - idx)) + asset.size
+        }
+    }
+
+    private fun detectSystemArchitecture(): Architecture {
+        val osArch = System.getProperty("os.arch") ?: return Architecture.UNKNOWN
+        return Architecture.fromString(osArch)
+    }
+
+    private fun detectLinuxPackageType(): LinuxPackageType {
+        if (platform != PlatformType.LINUX) return LinuxPackageType.UNIVERSAL
+
+        return try {
+            if (commandExists("apt")) {
+                return LinuxPackageType.DEB
+            }
+
+            if (commandExists("dnf")) {
+                return LinuxPackageType.RPM
+            }
+
+            if (commandExists("yum")) {
+                return LinuxPackageType.RPM
+            }
+
+            if (commandExists("zypper")) {
+                return LinuxPackageType.RPM
+            }
+
+            LinuxPackageType.UNIVERSAL
+        } catch (e: Exception) {
+            Logger.w { "Failed to detect Linux package type: ${e.message}" }
+            LinuxPackageType.UNIVERSAL
+        }
+    }
+
+    private fun commandExists(command: String): Boolean {
+        return try {
+            val process = ProcessBuilder("which", command).start()
+            process.waitFor() == 0
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun isArchitectureCompatible(assetName: String, systemArch: Architecture): Boolean {
+        val name = assetName.lowercase()
+
+        val hasArchInName = listOf(
+            "x86_64", "amd64", "x64",
+            "aarch64", "arm64",
+            "i386", "i686", "x86",
+            "armv7", "arm"
+        ).any { name.contains(it) }
+
+        if (!hasArchInName) return true
+
+        return when (systemArch) {
+            Architecture.X86_64 -> {
+                name.contains("x86_64") || name.contains("amd64") || name.contains("x64")
+            }
+
+            Architecture.AARCH64 -> {
+                name.contains("aarch64") || name.contains("arm64")
+            }
+
+            Architecture.X86 -> {
+                name.contains("i386") || name.contains("i686") || name.contains("x86")
+            }
+
+            Architecture.ARM -> {
+                name.contains("armv7") || name.contains("arm")
+            }
+
+            Architecture.UNKNOWN -> true
+        }
+    }
+
+    private fun isExactArchitectureMatch(assetName: String, systemArch: Architecture): Boolean {
+        val name = assetName.lowercase()
+        return when (systemArch) {
+            Architecture.X86_64 -> name.contains("x86_64") || name.contains("amd64") || name.contains(
+                "x64"
+            )
+
+            Architecture.AARCH64 -> name.contains("aarch64") || name.contains("arm64")
+            Architecture.X86 -> name.contains("i386") || name.contains("i686")
+            Architecture.ARM -> name.contains("armv7") || name.contains("arm")
+            Architecture.UNKNOWN -> false
+        }
+    }
 
     override suspend fun isSupported(extOrMime: String): Boolean {
         val ext = extOrMime.lowercase().removePrefix(".")
@@ -207,20 +364,16 @@ class DesktopInstaller(
     private fun openTerminalForDebInstall(filePath: String) {
         Logger.d { "Opening terminal for DEB installation" }
 
-        // First, try to detect available terminals
         val availableTerminals = detectAvailableTerminals()
 
         if (availableTerminals.isEmpty()) {
-            // No terminal found - try graphical notification or fallback
             Logger.e { "No terminal emulator found on system" }
 
-            // Try to show a notification with instructions
             tryShowNotification(
                 "Installation Required",
                 "Please install manually: sudo dpkg -i '$filePath' && sudo apt-get install -f -y"
             )
 
-            // Try to copy command to clipboard
             tryCopyToClipboard("sudo dpkg -i '$filePath' && sudo apt-get install -f -y")
 
             throw IOException(
@@ -229,34 +382,42 @@ class DesktopInstaller(
             )
         }
 
-        val command = "echo 'Installing DEB package...'; sudo dpkg -i '$filePath' && sudo apt-get install -f -y; echo ''; echo 'Installation complete. Press Enter to close...'; read"
+        val command =
+            "echo 'Installing DEB package...'; sudo dpkg -i '$filePath' && sudo apt-get install -f -y; echo ''; echo 'Installation complete. Press Enter to close...'; read"
 
         for (terminal in availableTerminals) {
             try {
                 Logger.d { "Trying terminal: ${terminal.name}" }
                 val processBuilder = when (terminal) {
-                    Terminal.GNOME_TERMINAL -> ProcessBuilder(
+                    LinuxTerminal.GNOME_TERMINAL -> ProcessBuilder(
                         "gnome-terminal", "--", "bash", "-c", command
                     )
-                    Terminal.KONSOLE -> ProcessBuilder(
+
+                    LinuxTerminal.KONSOLE -> ProcessBuilder(
                         "konsole", "-e", "bash", "-c", command
                     )
-                    Terminal.XTERM -> ProcessBuilder(
+
+                    LinuxTerminal.XTERM -> ProcessBuilder(
                         "xterm", "-e", "bash", "-c", command
                     )
-                    Terminal.XFCE4_TERMINAL -> ProcessBuilder(
+
+                    LinuxTerminal.XFCE4_TERMINAL -> ProcessBuilder(
                         "xfce4-terminal", "-e", "bash -c \"$command\""
                     )
-                    Terminal.ALACRITTY -> ProcessBuilder(
+
+                    LinuxTerminal.ALACRITTY -> ProcessBuilder(
                         "alacritty", "-e", "bash", "-c", command
                     )
-                    Terminal.KITTY -> ProcessBuilder(
+
+                    LinuxTerminal.KITTY -> ProcessBuilder(
                         "kitty", "bash", "-c", command
                     )
-                    Terminal.TILIX -> ProcessBuilder(
+
+                    LinuxTerminal.TILIX -> ProcessBuilder(
                         "tilix", "-e", "bash -c \"$command\""
                     )
-                    Terminal.MATE_TERMINAL -> ProcessBuilder(
+
+                    LinuxTerminal.MATE_TERMINAL -> ProcessBuilder(
                         "mate-terminal", "-e", "bash -c \"$command\""
                     )
                 }
@@ -293,34 +454,45 @@ class DesktopInstaller(
             )
         }
 
-        val command = "echo 'Installing RPM package...'; sudo dnf install -y '$filePath' || sudo yum install -y '$filePath' || sudo rpm -i '$filePath'; echo ''; echo 'Installation complete. Press Enter to close...'; read"
+        val command ="echo 'Installing RPM package...'; " +
+                "sudo dnf install -y '$filePath' " +
+                "|| sudo yum install -y '$filePath' " +
+                "|| sudo rpm -i '$filePath'; echo ''; " +
+                "echo 'Installation complete. Press Enter to close...'; read"
 
         for (terminal in availableTerminals) {
             try {
                 Logger.d { "Trying terminal: ${terminal.name}" }
                 val processBuilder = when (terminal) {
-                    Terminal.GNOME_TERMINAL -> ProcessBuilder(
+                    LinuxTerminal.GNOME_TERMINAL -> ProcessBuilder(
                         "gnome-terminal", "--", "bash", "-c", command
                     )
-                    Terminal.KONSOLE -> ProcessBuilder(
+
+                    LinuxTerminal.KONSOLE -> ProcessBuilder(
                         "konsole", "-e", "bash", "-c", command
                     )
-                    Terminal.XTERM -> ProcessBuilder(
+
+                    LinuxTerminal.XTERM -> ProcessBuilder(
                         "xterm", "-e", "bash", "-c", command
                     )
-                    Terminal.XFCE4_TERMINAL -> ProcessBuilder(
+
+                    LinuxTerminal.XFCE4_TERMINAL -> ProcessBuilder(
                         "xfce4-terminal", "-e", "bash -c \"$command\""
                     )
-                    Terminal.ALACRITTY -> ProcessBuilder(
+
+                    LinuxTerminal.ALACRITTY -> ProcessBuilder(
                         "alacritty", "-e", "bash", "-c", command
                     )
-                    Terminal.KITTY -> ProcessBuilder(
+
+                    LinuxTerminal.KITTY -> ProcessBuilder(
                         "kitty", "bash", "-c", command
                     )
-                    Terminal.TILIX -> ProcessBuilder(
+
+                    LinuxTerminal.TILIX -> ProcessBuilder(
                         "tilix", "-e", "bash -c \"$command\""
                     )
-                    Terminal.MATE_TERMINAL -> ProcessBuilder(
+
+                    LinuxTerminal.MATE_TERMINAL -> ProcessBuilder(
                         "mate-terminal", "-e", "bash -c \"$command\""
                     )
                 }
@@ -336,45 +508,34 @@ class DesktopInstaller(
         throw IOException("Could not open any terminal emulator")
     }
 
-    private enum class Terminal {
-        GNOME_TERMINAL,
-        KONSOLE,
-        XTERM,
-        XFCE4_TERMINAL,
-        ALACRITTY,
-        KITTY,
-        TILIX,
-        MATE_TERMINAL
-    }
 
-    private fun detectAvailableTerminals(): List<Terminal> {
-        val terminals = mutableListOf<Terminal>()
+    private fun detectAvailableTerminals(): List<LinuxTerminal> {
+        val linuxTerminals = mutableListOf<LinuxTerminal>()
 
-        val terminalCommands = mapOf(
-            Terminal.GNOME_TERMINAL to "gnome-terminal",
-            Terminal.KONSOLE to "konsole",
-            Terminal.XTERM to "xterm",
-            Terminal.XFCE4_TERMINAL to "xfce4-terminal",
-            Terminal.ALACRITTY to "alacritty",
-            Terminal.KITTY to "kitty",
-            Terminal.TILIX to "tilix",
-            Terminal.MATE_TERMINAL to "mate-terminal"
+        val linuxTerminalCommands = mapOf(
+            LinuxTerminal.GNOME_TERMINAL to "gnome-terminal",
+            LinuxTerminal.KONSOLE to "konsole",
+            LinuxTerminal.XTERM to "xterm",
+            LinuxTerminal.XFCE4_TERMINAL to "xfce4-terminal",
+            LinuxTerminal.ALACRITTY to "alacritty",
+            LinuxTerminal.KITTY to "kitty",
+            LinuxTerminal.TILIX to "tilix",
+            LinuxTerminal.MATE_TERMINAL to "mate-terminal"
         )
 
-        for ((terminal, command) in terminalCommands) {
+        for ((terminal, command) in linuxTerminalCommands) {
             try {
                 val process = ProcessBuilder("which", command).start()
                 val exitCode = process.waitFor()
                 if (exitCode == 0) {
-                    terminals.add(terminal)
+                    linuxTerminals.add(terminal)
                     Logger.d { "Found terminal: $command" }
                 }
-            } catch (e: Exception) {
-                // Terminal not available
+            } catch (_: Exception) {
             }
         }
 
-        return terminals
+        return linuxTerminals
     }
 
     private fun tryShowNotification(title: String, message: String) {
@@ -481,7 +642,7 @@ class DesktopInstaller(
                     return xdgDesktop
                 }
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
 
         val homeDir = System.getProperty("user.home")

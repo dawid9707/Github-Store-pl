@@ -15,11 +15,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
-import zed.rainxch.githubstore.core.domain.getPlatform
-import zed.rainxch.githubstore.core.domain.model.Architecture
-import zed.rainxch.githubstore.core.domain.model.GithubAsset
-import zed.rainxch.githubstore.core.domain.model.PlatformType
-import zed.rainxch.githubstore.core.domain.model.getSystemArchitecture
 import zed.rainxch.githubstore.core.presentation.utils.openBrowser
 import zed.rainxch.githubstore.feature.details.data.Downloader
 import zed.rainxch.githubstore.feature.details.data.Installer
@@ -102,12 +97,12 @@ class DetailsViewModel(
                 val readme = readmeDeferred.await()
                 val userProfile = userProfileDeferred.await()
 
-                val platformType = getPlatform().type
+                // Get installable assets from installer (platform-specific logic)
                 val installable = latestRelease?.assets?.filter { asset ->
-                    isAssetInstallableForPlatform(asset.name, platformType)
+                    installer.isAssetInstallable(asset.name)
                 }.orEmpty()
 
-                val primary = choosePrimaryAsset(installable, platformType)
+                val primary = installer.choosePrimaryAsset(installable)
 
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -119,7 +114,7 @@ class DetailsViewModel(
                     installableAssets = installable,
                     primaryAsset = primary,
                     userProfile = userProfile,
-                    systemArchitecture = getSystemArchitecture()
+                    systemArchitecture = installer.getSystemArchitecture()
                 )
             } catch (t: Throwable) {
                 Logger.e { "Details load failed: ${t.message}" }
@@ -128,100 +123,6 @@ class DetailsViewModel(
                     errorMessage = t.message ?: "Failed to load details"
                 )
             }
-        }
-    }
-
-    private fun isAssetInstallableForPlatform(nameRaw: String, platform: PlatformType): Boolean {
-        val name = nameRaw.lowercase()
-        val architecture = getSystemArchitecture()
-
-        // First check if it's a valid file type for the platform
-        val hasValidExtension = when (platform) {
-            PlatformType.ANDROID -> name.endsWith(".apk")
-            PlatformType.WINDOWS -> name.endsWith(".msi") || name.endsWith(".exe")
-            PlatformType.MACOS -> name.endsWith(".dmg") || name.endsWith(".pkg")
-            PlatformType.LINUX -> name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm")
-        }
-
-        if (!hasValidExtension) return false
-
-        // Then check architecture compatibility
-        return isArchitectureCompatible(name, architecture)
-    }
-
-    private fun isArchitectureCompatible(assetName: String, systemArch: Architecture): Boolean {
-        val name = assetName.lowercase()
-
-        // If no architecture is specified in the filename, assume it's compatible
-        val hasArchInName = listOf(
-            "x86_64", "amd64", "x64",
-            "aarch64", "arm64",
-            "i386", "i686", "x86",
-            "armv7", "arm"
-        ).any { name.contains(it) }
-
-        if (!hasArchInName) return true
-
-        // Check if the asset architecture matches system architecture
-        return when (systemArch) {
-            Architecture.X86_64 -> {
-                name.contains("x86_64") || name.contains("amd64") || name.contains("x64")
-            }
-            Architecture.AARCH64 -> {
-                name.contains("aarch64") || name.contains("arm64")
-            }
-            Architecture.X86 -> {
-                name.contains("i386") || name.contains("i686") || name.contains("x86")
-            }
-            Architecture.ARM -> {
-                name.contains("armv7") || name.contains("arm")
-            }
-            Architecture.UNKNOWN -> true
-        }
-    }
-
-    private fun choosePrimaryAsset(
-        assets: List<GithubAsset>,
-        platform: PlatformType
-    ): GithubAsset? {
-        if (assets.isEmpty()) return null
-
-        val architecture = getSystemArchitecture()
-        val priority = when (platform) {
-            PlatformType.ANDROID -> listOf(".apk")
-            PlatformType.WINDOWS -> listOf(".msi", ".exe")
-            PlatformType.MACOS -> listOf(".dmg", ".pkg")
-            PlatformType.LINUX -> listOf(".appimage", ".deb", ".rpm")
-        }
-
-        // First, prefer assets that match the system architecture
-        val compatibleAssets = assets.filter { asset ->
-            isArchitectureCompatible(asset.name.lowercase(), architecture)
-        }
-
-        // If we found architecture-specific assets, use those; otherwise use all assets
-        val assetsToConsider = compatibleAssets.ifEmpty { assets }
-
-        return assetsToConsider.maxByOrNull { asset ->
-            val name = asset.name.lowercase()
-            val idx = priority.indexOfFirst { name.endsWith(it) }
-                .let { if (it == -1) 999 else it }
-
-            // Boost score if architecture matches exactly
-            val archBoost = if (isExactArchitectureMatch(name, architecture)) 10000 else 0
-
-            archBoost + (-1000 * (priority.size - idx)) + asset.size
-        }
-    }
-
-    private fun isExactArchitectureMatch(assetName: String, systemArch: Architecture): Boolean {
-        val name = assetName.lowercase()
-        return when (systemArch) {
-            Architecture.X86_64 -> name.contains("x86_64") || name.contains("amd64") || name.contains("x64")
-            Architecture.AARCH64 -> name.contains("aarch64") || name.contains("arm64")
-            Architecture.X86 -> name.contains("i386") || name.contains("i686")
-            Architecture.ARM -> name.contains("armv7") || name.contains("arm")
-            Architecture.UNKNOWN -> false
         }
     }
 
@@ -272,9 +173,11 @@ class DetailsViewModel(
                 _state.value.userProfile?.htmlUrl?.let { openBrowser(it) }
             }
 
-            DetailsAction.OnNavigateBackClick -> { /* handled in UI host */ }
+            DetailsAction.OnNavigateBackClick -> { /* handled in UI host */
+            }
 
-            is DetailsAction.OpenAuthorInApp -> { /* handled in UI host */ }
+            is DetailsAction.OpenAuthorInApp -> { /* handled in UI host */
+            }
         }
     }
 
@@ -294,7 +197,9 @@ class DetailsViewModel(
                     downloadProgressPercent = null
                 )
 
-                installer.ensurePermissionsOrThrow(assetName.substringAfterLast('.', "").lowercase())
+                installer.ensurePermissionsOrThrow(
+                    assetName.substringAfterLast('.', "").lowercase()
+                )
 
                 _state.value = _state.value.copy(downloadStage = DownloadStage.DOWNLOADING)
 
@@ -352,7 +257,8 @@ class DetailsViewModel(
                     downloader.download(downloadUrl, assetName).collect { p ->
                         _state.value = _state.value.copy(downloadProgressPercent = p.percent)
                     }
-                } catch (_: Throwable) { }
+                } catch (_: Throwable) {
+                }
 
                 downloader.saveToFile(downloadUrl, assetName)
                 _state.value = _state.value.copy(isDownloading = false)

@@ -21,4 +21,4 @@ enum class Architecture {
     }
 }
 
-expect fun getSystemArchitecture(): Architecture
+expect fun detectSystemArchitecture(): Architecture
