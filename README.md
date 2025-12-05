@@ -50,6 +50,7 @@ The repository is currently private while the core is being stabilized, but it w
 ## 🔃 Download
 Go to the [Releases](https://github.com/rainxchzed/Github-Store/releases) to download the latest Installer.
 
+> On macOS, you may see a warning that Apple cannot verify Github Store is free of malware. This happens because the app is distributed outside the App Store and is not notarized yet. You can allow it via System Settings → Privacy & Security → Open Anyway.
 
 ## 🚀 Features
 
