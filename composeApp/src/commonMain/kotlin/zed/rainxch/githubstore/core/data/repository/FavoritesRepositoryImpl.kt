@@ -21,7 +21,7 @@ class FavoritesRepositoryImpl(
     override suspend fun isFavoriteSync(repoId: Long): Boolean = dao.isFavoriteSync(repoId)
     
     override suspend fun addFavorite(repo: FavoriteRepo) {
-        // Check if app is installed
+
         val installedApp = installedAppsDao.getAppByRepoId(repo.repoId)
         dao.insertFavorite(
             repo.copy(
@@ -68,7 +68,7 @@ class FavoritesRepositoryImpl(
                     timestamp = System.currentTimeMillis()
                 )
             } catch (e: Exception) {
-                // Log error
+
             }
         }
     }

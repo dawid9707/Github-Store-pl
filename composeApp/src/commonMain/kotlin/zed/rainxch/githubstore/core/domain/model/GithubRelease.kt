@@ -5,8 +5,8 @@ data class GithubRelease(
     val tagName: String,
     val name: String?,
     val author: GithubUser,
-    val publishedAt: String, // ISO
-    val description: String?, // body
+    val publishedAt: String,
+    val description: String?,
     val assets: List<GithubAsset>,
     val tarballUrl: String,
     val zipballUrl: String,

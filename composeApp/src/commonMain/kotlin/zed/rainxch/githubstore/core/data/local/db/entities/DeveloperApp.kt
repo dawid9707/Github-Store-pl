@@ -29,5 +29,5 @@ data class DeveloperApp(
     val isInstalled: Boolean = false,
     val installedPackageName: String? = null,
     
-    val lastUpdatedAt: Long // timestamp
+    val lastUpdatedAt: Long
 )

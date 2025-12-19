@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
@@ -35,6 +38,8 @@ class HomeViewModel(
 
                 loadRepos(isInitial = true)
 
+                observeInstalledApps()
+
                 hasLoadedInitialData = true
             }
         }
@@ -49,6 +54,25 @@ class HomeViewModel(
             _state.update { it.copy(
                 isAppsSectionVisible = platform.type == PlatformType.ANDROID
             ) }
+        }
+    }
+
+    private fun observeInstalledApps() {
+        viewModelScope.launch {
+            installedAppsRepository.getAllInstalledApps().collect { installedApps ->
+                val installedMap = installedApps.associateBy { it.repoId }
+                _state.update { current ->
+                    current.copy(
+                        repos = current.repos.map { homeRepo ->
+                            val app = installedMap[homeRepo.repo.id]
+                            homeRepo.copy(
+                                isInstalled = app != null,
+                                isUpdateAvailable = app?.isUpdateAvailable ?: false
+                            )
+                        }
+                    )
+                }
+            }
         }
     }
 
@@ -92,33 +116,36 @@ class HomeViewModel(
 
                     this@HomeViewModel.nextPageIndex = paginatedRepos.nextPageIndex
 
-                    _state.update { currentState ->
+                    coroutineScope {
                         val newReposWithStatus = paginatedRepos.repos.map { repo ->
-                            val isInstalled = installedAppsRepository.isAppInstalled(repo.id)
-                            val app = installedAppsRepository.getAppByRepoId(repo.id)
-                            val isUpdateAvailable = app?.packageName?.let {
-                                installedAppsRepository.checkForUpdates(it)
-                            } == true
+                            async {
+                                val app = installedAppsRepository.getAppByRepoId(repo.id)
+                                val isUpdateAvailable = if (app?.packageName != null) {
+                                    installedAppsRepository.checkForUpdates(app.packageName)
+                                } else false
 
-                            HomeRepo(
-                                isInstalled = isInstalled,
-                                isUpdateAvailable = isUpdateAvailable,
-                                repo = repo
+                                HomeRepo(
+                                    isInstalled = app != null,
+                                    isUpdateAvailable = isUpdateAvailable,
+                                    repo = repo
+                                )
+                            }
+                        }.awaitAll()
+
+                        _state.update { currentState ->
+                            val rawList = currentState.repos + newReposWithStatus
+                            val uniqueList = rawList.distinctBy { it.repo.fullName }
+
+                            currentState.copy(
+                                repos = uniqueList,
+                                isLoading = false,
+                                isLoadingMore = false,
+                                hasMorePages = paginatedRepos.hasMore,
+                                errorMessage = if (uniqueList.isEmpty() && !paginatedRepos.hasMore) {
+                                    "No repositories found"
+                                } else null
                             )
                         }
-
-                        val rawList = currentState.repos + newReposWithStatus
-                        val uniqueList = rawList.distinctBy { it.repo.fullName }
-
-                        currentState.copy(
-                            repos = uniqueList,
-                            isLoading = false,
-                            isLoadingMore = false,
-                            hasMorePages = paginatedRepos.hasMore,
-                            errorMessage = if (uniqueList.isEmpty() && !paginatedRepos.hasMore) {
-                                "No repositories found"
-                            } else null
-                        )
                     }
                 }
 

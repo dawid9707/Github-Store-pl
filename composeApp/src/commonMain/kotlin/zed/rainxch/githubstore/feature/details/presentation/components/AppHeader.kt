@@ -45,7 +45,7 @@ fun AppHeader(
     author: GithubUserProfile?,
     repository: GithubRepoSummary,
     release: GithubRelease?,
-    installedApp: InstalledApp?, // NEW
+    installedApp: InstalledApp?,
     modifier: Modifier = Modifier,
     downloadStage: DownloadStage = DownloadStage.IDLE,
     downloadProgress: Int? = null
@@ -62,12 +62,10 @@ fun AppHeader(
         Row(
             verticalAlignment = Alignment.Top
         ) {
-            // Avatar with circular progress
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(100.dp)
             ) {
-                // The avatar image
                 AsyncImage(
                     model = author?.avatarUrl,
                     contentDescription = null,
@@ -82,7 +80,6 @@ fun AppHeader(
                     contentScale = ContentScale.Crop
                 )
 
-                // Progress ring overlay - only show when downloading
                 if (downloadStage != DownloadStage.IDLE) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -90,7 +87,6 @@ fun AppHeader(
                     ) {
                         when (downloadStage) {
                             DownloadStage.DOWNLOADING -> {
-                                // Background circle (track)
                                 CircularProgressIndicator(
                                     progress = { 1f },
                                     modifier = Modifier.fillMaxSize(),
@@ -98,7 +94,6 @@ fun AppHeader(
                                     strokeWidth = 4.dp,
                                 )
 
-                                // Progress circle
                                 CircularProgressIndicator(
                                     progress = { animatedProgress },
                                     modifier = Modifier.fillMaxSize(),
@@ -109,7 +104,6 @@ fun AppHeader(
                             }
 
                             DownloadStage.VERIFYING, DownloadStage.INSTALLING -> {
-                                // Indeterminate spinner for verifying/installing
                                 CircularProgressIndicator(
                                     modifier = Modifier.fillMaxSize(),
                                     color = MaterialTheme.colorScheme.primary,
@@ -140,12 +134,6 @@ fun AppHeader(
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-
-                    if (installedApp != null) {
-                        InstallStatusBadge(
-                            isUpdateAvailable = installedApp.isUpdateAvailable,
-                        )
-                    }
                 }
 
                 Text(
@@ -153,6 +141,14 @@ fun AppHeader(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
+
+                Spacer(Modifier.height(8.dp))
+
+                if (installedApp != null) {
+                    InstallStatusBadge(
+                        isUpdateAvailable = installedApp.isUpdateAvailable,
+                    )
+                }
 
                 Spacer(Modifier.height(8.dp))
 
@@ -166,7 +162,6 @@ fun AppHeader(
                         color = MaterialTheme.colorScheme.secondary,
                     )
 
-                    // Show installed version if different from latest
                     if (installedApp != null && installedApp.installedVersion != release?.tagName) {
                         Text(
                             text = "• Installed: ${installedApp.installedVersion}",

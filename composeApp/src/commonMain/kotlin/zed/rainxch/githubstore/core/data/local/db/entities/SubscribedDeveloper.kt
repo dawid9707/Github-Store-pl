@@ -13,6 +13,6 @@ data class SubscribedDeveloper(
     val developerBio: String?,
     
     val repositoryCount: Int = 0,
-    val subscribedAt: Long, // timestamp
-    val lastSyncedAt: Long // timestamp
+    val subscribedAt: Long,
+    val lastSyncedAt: Long
 )

@@ -4,11 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -28,7 +34,30 @@ class SearchViewModel(
     private val _state = MutableStateFlow(SearchState())
     val state = _state.asStateFlow()
 
-    private fun performSearch(isInitial: Boolean = false) {
+    init {
+        observeInstalledApps()
+    }
+
+    private fun observeInstalledApps() {
+        viewModelScope.launch {
+            installedAppsRepository.getAllInstalledApps().collect { installedApps ->
+                val installedMap = installedApps.associateBy { it.repoId }
+                _state.update { current ->
+                    current.copy(
+                        repositories = current.repositories.map { searchRepo ->
+                            val app = installedMap[searchRepo.repo.id]
+                            searchRepo.copy(
+                                isInstalled = app != null,
+                                isUpdateAvailable = app?.isUpdateAvailable ?: false
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    private fun performSearch(isInitial:  Boolean = false) {
         if (_state.value.search.isBlank()) {
             _state.update {
                 it.copy(
@@ -41,7 +70,9 @@ class SearchViewModel(
             return
         }
 
-        currentSearchJob?.cancel()
+        if (isInitial) {
+            currentSearchJob?.cancel()
+        }
 
         if (isInitial) {
             currentPage = 1
@@ -51,56 +82,76 @@ class SearchViewModel(
             _state.update {
                 it.copy(
                     isLoading = isInitial,
-                    isLoadingMore = !isInitial,
+                    isLoadingMore = ! isInitial,
                     errorMessage = null,
                     repositories = if (isInitial) emptyList() else it.repositories
                 )
             }
 
             try {
-                searchRepository.searchRepositories(
-                    query = _state.value.search,
-                    searchPlatformType = _state.value.selectedSearchPlatformType,
-                    page = currentPage
-                ).catch { e ->
-                    if (e !is CancellationException) {
-                        throw e
-                    }
-                }.collect { paginatedRepos ->
-                    if (isActive) {
-                        _state.update { currentState ->
-                            val merged = if (isInitial) {
-                                paginatedRepos.repos
-                            } else {
-                                currentState.repositories + paginatedRepos.repos
-                            }
-                            val updatedRepos = paginatedRepos.repos.map { repo ->
-                                val isInstalled = installedAppsRepository.isAppInstalled(repo.id)
-                                val app = installedAppsRepository.getAppByRepoId(repo.id)
-                                val isUpdateAvailable = app?.packageName?.let {
-                                    installedAppsRepository.checkForUpdates(it)
-                                } == true
+                val installedAppsSnapshot = installedAppsRepository.getAllInstalledApps().first()
+                val installedMap = installedAppsSnapshot.associateBy { it.repoId }
 
-                                SearchRepo(
-                                    isInstalled = isInstalled,
-                                    isUpdateAvailable = isUpdateAvailable,
-                                    repo = repo
-                                )
+                searchRepository
+                    .searchRepositories(
+                        query = _state.value.search,
+                        searchPlatformType = _state.value.selectedSearchPlatformType,
+                        page = currentPage
+                    )
+                    .collectLatest { paginatedRepos ->
+                        if (! isActive) return@collectLatest
+
+                        val newReposWithStatus = coroutineScope {
+                            paginatedRepos.repos.map { repo ->
+                                async(Dispatchers.IO) {
+                                    val app = installedMap[repo.id]
+                                    val isUpdateAvailable = if (app?. packageName != null) {
+                                        installedAppsRepository.checkForUpdates(app.packageName)
+                                    } else false
+
+                                    SearchRepo(
+                                        isInstalled = app != null,
+                                        isUpdateAvailable = isUpdateAvailable,
+                                        repo = repo
+                                    )
+                                }
+                            }. awaitAll()
+                        }
+
+                        _state.update { currentState ->
+                            val mergedMap = LinkedHashMap<Long, SearchRepo>()
+
+                            currentState.repositories.forEach { r ->
+                                mergedMap[r.repo.id] = r
                             }
+
+                            newReposWithStatus.forEach { r ->
+                                val existing = mergedMap[r.repo.id]
+                                if (existing == null) {
+                                    mergedMap[r.repo. id] = r
+                                } else {
+                                    mergedMap[r.repo.id] = existing.copy(
+                                        isInstalled = r.isInstalled,
+                                        isUpdateAvailable = r. isUpdateAvailable,
+                                        repo = r.repo
+                                    )
+                                }
+                            }
+
+                            val allRepos = mergedMap.values.toList()
 
                             currentState.copy(
-                                repositories = updatedRepos,
+                                repositories = allRepos,
                                 isLoading = false,
                                 isLoadingMore = false,
                                 hasMorePages = paginatedRepos.hasMore,
                                 totalCount = paginatedRepos.totalCount,
-                                errorMessage = if (updatedRepos.isEmpty() && !paginatedRepos.hasMore) {
+                                errorMessage = if (allRepos.isEmpty() && !paginatedRepos. hasMore) {
                                     "No repositories found"
                                 } else null
                             )
                         }
                     }
-                }
             } catch (e: CancellationException) {
                 Logger.d { "Search cancelled (expected): ${e.message}" }
             } catch (e: Exception) {

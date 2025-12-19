@@ -45,7 +45,7 @@ fun GithubStoreButton(
             icon?.invoke()
             Text(
                 text = text,
-                style = MaterialTheme.typography.labelLarge, // Standard for buttons
+                style = MaterialTheme.typography.labelLarge,
             )
         }
     }
