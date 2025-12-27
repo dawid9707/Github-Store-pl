@@ -30,4 +30,28 @@
     <string name="currently_updating">Actual: %1$s</string>
 
     <string name="percent">%1$d%%</string>
+
+    <string name="waiting_for_authorization">Esperando autorización…</string>
+    <string name="signed_in">¡Sesión iniciada!</string>
+    <string name="redirecting_message">Ya puedes usar la aplicación. Redirigiendo…</string>
+    <string name="try_again">Intentar de nuevo</string>
+
+    <string name="auth_error_with_message">Error: %1$s</string>
+
+    <string name="enter_code_on_github">Introduce este código en GitHub:</string>
+    <string name="copy_code">Copiar código</string>
+    <string name="open_github">Abrir GitHub</string>
+
+    <string name="unlock_full_experience">Desbloquea la experiencia\ncompleta</string>
+
+    <string name="more_requests">Más solicitudes</string>
+    <string name="more_requests_description">
+        Inicia sesión para obtener límites de API más altos y evitar interrupciones.
+    </string>
+
+    <string name="sign_in_with_github">Iniciar sesión con GitHub</string>
+
+    <string name="error_cancelled">Cancelado</string>
+    <string name="error_unknown">Error desconocido</string>
+
 </resources>

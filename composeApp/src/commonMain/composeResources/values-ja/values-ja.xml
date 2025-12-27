@@ -30,4 +30,28 @@
     <string name="currently_updating">現在：%1$s</string>
 
     <string name="percent">%1$d%%</string>
+
+    <string name="waiting_for_authorization">認証を待機中…</string>
+    <string name="signed_in">ログイン完了！</string>
+    <string name="redirecting_message">アプリを使用できます。リダイレクト中…</string>
+    <string name="try_again">再試行</string>
+
+    <string name="auth_error_with_message">エラー：%1$s</string>
+
+    <string name="enter_code_on_github">GitHubでこのコードを入力してください：</string>
+    <string name="copy_code">コードをコピー</string>
+    <string name="open_github">GitHubを開く</string>
+
+    <string name="unlock_full_experience">すべての機能を\n解放</string>
+
+    <string name="more_requests">リクエスト数を増加</string>
+    <string name="more_requests_description">
+        ログインして API の制限を引き上げ、中断を防ぎましょう。
+    </string>
+
+    <string name="sign_in_with_github">GitHubでサインイン</string>
+
+    <string name="error_cancelled">キャンセルされました</string>
+    <string name="error_unknown">不明なエラー</string>
+
 </resources>

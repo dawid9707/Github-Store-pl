@@ -30,4 +30,28 @@
     <string name="currently_updating">Сейчас: %1$s</string>
 
     <string name="percent">%1$d%%</string>
+
+    <string name="waiting_for_authorization">Ожидание авторизации…</string>
+    <string name="signed_in">Вход выполнен!</string>
+    <string name="redirecting_message">Теперь вы можете использовать приложение. Перенаправление…</string>
+    <string name="try_again">Попробовать снова</string>
+
+    <string name="auth_error_with_message">Ошибка: %1$s</string>
+
+    <string name="enter_code_on_github">Введите этот код на GitHub:</string>
+    <string name="copy_code">Скопировать код</string>
+    <string name="open_github">Открыть GitHub</string>
+
+    <string name="unlock_full_experience">Откройте полный\nдоступ</string>
+
+    <string name="more_requests">Больше запросов</string>
+    <string name="more_requests_description">
+        Войдите, чтобы получить более высокий лимит API и избежать прерываний.
+    </string>
+
+    <string name="sign_in_with_github">Войти через GitHub</string>
+
+    <string name="error_cancelled">Отменено</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+
 </resources>

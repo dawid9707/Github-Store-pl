@@ -30,4 +30,27 @@
     <string name="currently_updating">当前：%1$s</string>
 
     <string name="percent">%1$d%%</string>
+
+    <string name="waiting_for_authorization">正在等待授权…</string>
+    <string name="signed_in">登录成功！</string>
+    <string name="redirecting_message">现在可以使用应用。正在跳转…</string>
+    <string name="try_again">重试</string>
+
+    <string name="auth_error_with_message">错误：%1$s</string>
+
+    <string name="enter_code_on_github">请在 GitHub 上输入此代码：</string>
+    <string name="copy_code">复制代码</string>
+    <string name="open_github">打开 GitHub</string>
+
+    <string name="unlock_full_experience">解锁完整\n体验</string>
+
+    <string name="more_requests">更多请求</string>
+    <string name="more_requests_description">
+        登录以获得更高的 API 限额，避免中断。
+    </string>
+
+    <string name="sign_in_with_github">使用 GitHub 登录</string>
+
+    <string name="error_cancelled">已取消</string>
+    <string name="error_unknown">未知错误</string>
 </resources>

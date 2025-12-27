@@ -40,4 +40,31 @@
     <!-- Apps feature - Progress -->
     <string name="percent">%1$d%%</string>
 
+
+    <!-- Auth general -->
+    <string name="waiting_for_authorization">Waiting for authorization…</string>
+    <string name="signed_in">Signed in!</string>
+    <string name="redirecting_message">You can now use the app. Redirecting…</string>
+    <string name="try_again">Try again</string>
+
+    <!-- Errors -->
+    <string name="auth_error_with_message">Error: %1$s</string>
+
+    <!-- Device flow -->
+    <string name="enter_code_on_github">Enter this code on GitHub:</string>
+    <string name="copy_code">Copy the code</string>
+    <string name="open_github">Open GitHub</string>
+
+    <!-- Logged out -->
+    <string name="unlock_full_experience">Unlock the Full\nExperience</string>
+
+    <string name="more_requests">More Requests</string>
+    <string name="more_requests_description">
+        Sign in to get higher API rate limits and avoid interruptions.
+    </string>
+
+    <string name="sign_in_with_github">Sign in with GitHub</string>
+
+    <string name="error_cancelled">Cancelled</string>
+    <string name="error_unknown">Unknown error</string>
 </resources>
