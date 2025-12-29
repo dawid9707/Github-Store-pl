@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://github.com/XDdevv/Github-Store/blob/main/composeApp/src/commonMain/composeResources/drawable/app-icon.png" width="200" alt="프로젝트 로고"/>
+<img src="https://github.com/rainxchzed/Github-Store/blob/main/composeApp/src/commonMain/composeResources/drawable/app-icon.png" width="200" alt="프로젝트 로고"/>
 </div>
 
 <h1 align="center">GitHub Store</h1>
