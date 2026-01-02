@@ -68,6 +68,8 @@ GitHub Releases를 깔끔한 앱 스토어 형태의 경험으로 바꿔줍니�
 > 이는 App Store 외부에서 배포되며 아직 공증되지 않았기 때문입니다.
 > 시스템 설정 → 개인정보 보호 및 보안 → 그대로 열기를 통해 실행할 수 있습니다.
 
+---
+
 ## 🏆 소개된 곳
 
 <a href="https://www.youtube.com/@howtomen">
@@ -76,6 +78,8 @@ GitHub Releases를 깔끔한 앱 스토어 형태의 경험으로 바꿔줍니�
 
 - **HowToMen**: [2026년 최고의 안드로이드 앱 TOP 20 (구독자 86만 명)](https://www.youtube.com/watch?v=7favc9MDedQ)
 - **F-Droid**: [앱 스토어 카테고리 1위](https://f-droid.org/en/categories/app-store-updater/)
+
+---
 
 ## 🚀 주요 기능
 

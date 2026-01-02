@@ -69,6 +69,17 @@ GitHub Store 是一个使用 **Kotlin Multiplatform（Android + Desktop）**
 
 ---
 
+## 🏆 曾被推荐
+
+<a href="https://www.youtube.com/@howtomen">
+  <img src="https://img.shields.io/badge/Featured%20by-HowToMen-red?logo=youtube" alt="HowToMen 推荐">
+</a>
+
+- **HowToMen**：[2026 年最佳 Android 应用 Top 20（86 万订阅者）](https://www.youtube.com/watch?v=7favc9MDedQ)
+- **F-Droid**：[应用商店分类排名第 1](https://f-droid.org/en/categories/app-store-updater/)
+
+---
+
 ## 🚀 核心功能
 
 - **智能发现**
@@ -205,6 +216,28 @@ GitHub Store **不使用私有索引或人工审核**。
 - **始终安装最新版本**
 - **Android 与 Desktop 一致的体验**
 - **完全开源，可扩展**
+
+---
+
+## 💖 支持此项目
+
+GitHub Store 是完全免费的，并将一直保持免费。  
+如果这个项目对你有帮助，欢迎通过以下方式支持：
+
+<a href="https://github.com/sponsors/rainxchzed">
+  <img src="https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github" alt="在 GitHub 上赞助">
+</a>
+
+<a href="https://www.buymeacoffee.com/rainxchzed">
+  <img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black" alt="请我喝杯咖啡">
+</a>
+
+你的支持将帮助：
+- 维护超过 20,000 名用户的应用
+- 开发新功能
+- 为开发者创建更多免费的工具
+
+你也可以给仓库点一个 ⭐ 并分享给他人！
 
 ---
 

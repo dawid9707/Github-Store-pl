@@ -69,6 +69,8 @@ qui transforme les GitHub Releases en une expérience fluide de type app store :
 > Vous pouvez l’autoriser via
 > System Settings → Privacy & Security → Open Anyway.
 
+---
+
 ## 🏆 Présenté dans
 
 <a href="https://www.youtube.com/@howtomen">
@@ -77,6 +79,8 @@ qui transforme les GitHub Releases en une expérience fluide de type app store :
 
 - **HowToMen** : [Top 20 des meilleures applications Android de 2026 (860k abonnés)](https://www.youtube.com/watch?v=7favc9MDedQ)
 - **F-Droid** : [Classé n°1 dans la catégorie App Store](https://f-droid.org/en/categories/app-store-updater/)
+
+---
 
 ## 🚀 Fonctionnalités
 
