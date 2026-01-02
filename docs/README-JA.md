@@ -69,6 +69,17 @@ GitHub Releases をアプリストアのような体験に変換します。
 
 ---
 
+## 🏆 紹介実績
+
+<a href="https://www.youtube.com/@howtomen">
+  <img src="https://img.shields.io/badge/Featured%20by-HowToMen-red?logo=youtube" alt="HowToMen により紹介">
+</a>
+
+- **HowToMen**：[2026 年 ベスト Android アプリ TOP 20（登録者数 86 万人）](https://www.youtube.com/watch?v=7favc9MDedQ)
+- **F-Droid**：[アプリストアカテゴリ第 1 位](https://f-droid.org/en/categories/app-store-updater/)
+
+---
+
 ## 🚀 機能
 
 - **スマートな発見**
@@ -204,6 +215,28 @@ GitHub Store は、非公開インデックスや手動キュレーションを�
 - **常に最新バージョン**
 - **Android と Desktop で統一された体験**
 - **オープンソースで拡張しやすい**
+
+---
+
+## 💖 プロジェクトを支援する
+
+GitHub Store は完全無料で、今後も無料のままです。  
+このプロジェクトが役に立った場合、以下の方法で支援できます：
+
+<a href="https://github.com/sponsors/rainxchzed">
+  <img src="https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github" alt="GitHub でスポンサー">
+</a>
+
+<a href="https://www.buymeacoffee.com/rainxchzed">
+  <img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black" alt="コーヒーをおごる">
+</a>
+
+支援によって可能になること：
+- 20,000 人以上のユーザー向けアプリの保守
+- 新機能の開発
+- 開発者向けの無料ツールの作成
+
+また、リポジトリに ⭐ を付けて共有することもできます！
 
 ---
 
