@@ -46,6 +46,7 @@ class HomeViewModel(
                 loadPlatform()
                 loadRepos(isInitial = true)
                 observeInstalledApps()
+                observeFavourites()
 
                 hasLoadedInitialData = true
             }
@@ -238,6 +239,23 @@ class HomeViewModel(
 
             HomeAction.OnAppsClick -> {
                 /* Handled in composable */
+            }
+        }
+    }
+
+    private fun observeFavourites() {
+        viewModelScope.launch {
+            favouritesRepository.getAllFavorites().collect { favourites ->
+                val favouritesMap = favourites.associateBy { it.repoId }
+                _state.update { current ->
+                    current.copy(
+                        repos = current.repos.map { homeRepo ->
+                            homeRepo.copy(
+                                isFavourite = favouritesMap.containsKey(homeRepo.repository.id)
+                            )
+                        }
+                    )
+                }
             }
         }
     }

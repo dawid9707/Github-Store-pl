@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.Card
@@ -66,161 +68,175 @@ fun RepositoryCard(
         ),
         shape = RoundedCornerShape(24.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                CoilImage(
-                    imageModel = { discoveryRepository.repository.owner.avatarUrl },
+        Box {
+            if(discoveryRepository.isFavourite) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape),
-                    loading = {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularWavyProgressIndicator()
-                        }
-                    },
-                    component = rememberImageComponent {
-                        CrossfadePlugin()
-                    }
-                )
-
-                Text(
-                    text = discoveryRepository.repository.owner.login,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.outline,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = "/ ${discoveryRepository.repository.name}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.outline,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f)
+                        .size(128.dp)
+                        .align(Alignment.BottomStart)
+                        .offset(x = -(32).dp, y = 32.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = .1f),
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = discoveryRepository.repository.name,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            discoveryRepository.repository.description?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyLarge,
-                    softWrap = false
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text(
-                    text = "⭐ ${discoveryRepository.repository.stargazersCount}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CoilImage(
+                        imageModel = { discoveryRepository.repository.owner.avatarUrl },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape),
+                        loading = {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularWavyProgressIndicator()
+                            }
+                        },
+                        component = rememberImageComponent {
+                            CrossfadePlugin()
+                        }
+                    )
 
-                Text(
-                    text = "• 🌴 ${discoveryRepository.repository.forksCount}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                discoveryRepository.repository.language?.let {
                     Text(
-                        text = "• $it",
+                        text = discoveryRepository.repository.owner.login,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = "/ ${discoveryRepository.repository.name}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = discoveryRepository.repository.name,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                discoveryRepository.repository.description?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyLarge,
+                        softWrap = false
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "⭐ ${discoveryRepository.repository.stargazersCount}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
-            }
 
-            if (discoveryRepository.isInstalled) {
+                    Text(
+                        text = "• 🌴 ${discoveryRepository.repository.forksCount}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    discoveryRepository.repository.language?.let {
+                        Text(
+                            text = "• $it",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                if (discoveryRepository.isInstalled) {
+                    Spacer(Modifier.height(12.dp))
+
+                    InstallStatusBadge(
+                        isUpdateAvailable = discoveryRepository.isUpdateAvailable
+                    )
+                }
+
                 Spacer(Modifier.height(12.dp))
 
-                InstallStatusBadge(
-                    isUpdateAvailable = discoveryRepository.isUpdateAvailable
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                text = formatUpdatedAt(discoveryRepository.repository.updatedAt),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.outline,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                GithubStoreButton(
-                    text = stringResource(Res.string.home_view_details),
-                    onClick = onClick,
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = formatUpdatedAt(discoveryRepository.repository.updatedAt),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                IconButton(
-                    onClick = {
-                        uriHandler.openUri(discoveryRepository.repository.htmlUrl)
-                    },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    shapes = IconButtonDefaults.shapes(),
+                Spacer(Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.OpenInBrowser,
-                        contentDescription = stringResource(Res.string.open_in_browser),
+                    GithubStoreButton(
+                        text = stringResource(Res.string.home_view_details),
+                        onClick = onClick,
+                        modifier = Modifier.weight(1f)
                     )
+
+                    IconButton(
+                        onClick = {
+                            uriHandler.openUri(discoveryRepository.repository.htmlUrl)
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        shapes = IconButtonDefaults.shapes(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.OpenInBrowser,
+                            contentDescription = stringResource(Res.string.open_in_browser),
+                        )
+                    }
                 }
             }
         }

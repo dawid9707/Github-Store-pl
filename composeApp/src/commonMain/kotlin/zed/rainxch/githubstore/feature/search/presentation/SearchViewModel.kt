@@ -38,6 +38,7 @@ class SearchViewModel(
     init {
         syncSystemState()
         observeInstalledApps()
+        observeFavouriteApps()
     }
 
     private fun syncSystemState() {
@@ -64,6 +65,23 @@ class SearchViewModel(
                             searchRepo.copy(
                                 isInstalled = app != null,
                                 isUpdateAvailable = app?.isUpdateAvailable ?: false
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+    private fun observeFavouriteApps() {
+        viewModelScope.launch {
+            favouritesRepository.getAllFavorites().collect { favoriteRepos ->
+                val installedMap = favoriteRepos.associateBy { it.repoId }
+                _state.update { current ->
+                    current.copy(
+                        repositories = current.repositories.map { searchRepo ->
+                            val app = installedMap[searchRepo.repository.id]
+                            searchRepo.copy(
+                                isFavourite = app != null
                             )
                         }
                     )
